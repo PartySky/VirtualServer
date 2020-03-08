@@ -33,5 +33,22 @@ namespace VirtualServer.Controllers
                 return Json("Test");
             });
         }
+
+        private TimeSpan GetUsageTime(DateTime dateNow)
+        {
+            var result = new TimeSpan();
+            var item = _db.UsageTimes.FirstOrDefault();
+            if (IsAnyRunningServrer())
+            {
+                // result = (TimeSpan) (item.TotalUsageTime + (
+                //     item.LastStartDate - dateNow));
+            }
+            else
+            {
+                // result = (TimeSpan) item.TotalUsageTime;
+            }
+
+            return result;
+        }
     }
 }
