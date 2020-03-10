@@ -1,0 +1,27 @@
+<div *ngIf="server"
+     class="wrapper">
+  <div class="cell">
+    <div [innerText]="server.id"></div>
+  </div>
+  <div class="cell">
+    <div [innerText]="server.vmCreateTime"></div>
+  </div>
+  <div class="cell">
+    <div *ngIf="server.removedTime"
+         [innerText]="server.vmRemoveTime"></div>
+  </div>
+  <div *ngIf="server.isRemoved"
+       class="cell removed">
+    Removed
+  </div>
+  <div *ngIf="!server.isRemoved"
+       class="cell remove_mess_wrapper"
+    (mouseenter)="isRemoveMessShown = true"
+    (mouseleave)="isRemoveMessShown = false"
+    (click)="removeItem()">
+    <div [innerText]='server.isSelectedForRemove? "+" : ""'
+      *ngIf="!isRemoveMessShown"></div>
+    <div *ngIf="isRemoveMessShown"
+      class="remove_mess">Remove from list</div>
+  </div>
+</div>

@@ -1,7 +1,8 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+ using System.Numerics;
+ using System.Threading.Tasks;
  using Google.Protobuf.WellKnownTypes;
  using Microsoft.AspNetCore.Mvc;
 using VirtualServer.Entities;
@@ -72,7 +73,12 @@ using VirtualServer.Models;
                 var dateNow = DateTime.Now;
                 
                 try
-                {   
+                {
+                    if (!IsAnyRunningServrer() || param.Length == 0)
+                    {
+                        return Json("Something went wrong, nothing to remove");
+                    }
+                    
                     result = _db.Servers
                         .Where(p => param.Any(item => item == p.Id))
                         .ToList();
@@ -86,9 +92,6 @@ using VirtualServer.Models;
                     _db.Servers.UpdateRange(result);
                     _db.SaveChanges();
                     
-                    // TODO: check if these removing servers are the last ones
-                    // Now one can click remove button and reset last stop time even
-                    // when there aren no running servers
                     ProcessLastStopDate(dateNow);
                 }
                 catch(Exception e)
@@ -96,7 +99,7 @@ using VirtualServer.Models;
                     Console.WriteLine(e.Message);
                 }
 
-                return Json(result);
+                return Json("ok");
             });
         }
         
@@ -105,22 +108,18 @@ using VirtualServer.Models;
         {
             return Task.Run(() =>
             {
-                var result = new TimeSpan();
-                var dateNow = DateTime.Now;
-
-                try
-                {
-                    result = GetUsageTime(dateNow);
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine(e.Message);
-                }
+                var result = GetUsageTime(DateTime.Now);
 
                 return Json(result);
             });
         }
 
+        [HttpGet, Route("getcurrenttime")]
+        public Task<JsonResult> GetCurrentTime()
+        {
+            return Task.Run(() => Json(data: DateTime.Now));
+        }
+        
         private void ProcessLastStartDate(DateTime dateNow)
         {
             if (IsAnyRunningServrer()) { return; }
@@ -137,36 +136,36 @@ using VirtualServer.Models;
 
             var result = _db.UsageTimes.FirstOrDefault();
             result.LastStopDate = dateNow;
-            
-            var nonNullableTimeSpanTemp = new TimeSpan(); 
-            
-            nonNullableTimeSpanTemp = nonNullableTimeSpanTemp
-                .Add((TimeSpan) (result.LastStopDate - result.LastStartDate));
 
-            if (result.TotalUsageTime == null)
+            if (String.IsNullOrEmpty(result.TotalUsageTime))
             {
-                result.TotalUsageTime = new DateTime(0001, 01, 01);
+                result.TotalUsageTime = (new TimeSpan()).ToString(@"dd\.hh\:mm\:ss");
             }
-
-            result.TotalUsageTime = result.TotalUsageTime + nonNullableTimeSpanTemp;
+            
+            var UsageTimeTemp = TimeSpan.Parse(result.TotalUsageTime);
+            var timeSpanTemp = (TimeSpan) (result.LastStopDate - result.LastStartDate);
+            result.TotalUsageTime = (UsageTimeTemp + timeSpanTemp).ToString(@"dd\.hh\:mm\:ss");
             
             _db.Update(result);
             _db.SaveChanges();
         }
 
-        private TimeSpan GetUsageTime(DateTime dateNow)
+        private UsageTimeStruct GetUsageTime(DateTime dateNow)
         {
-            var result = new TimeSpan();
             var item = _db.UsageTimes.FirstOrDefault();
+            var result = new UsageTimeStruct();
+
+            var timeSpanTemp = TimeSpan.Parse(item.TotalUsageTime);
+            
             if (IsAnyRunningServrer())
             {
-                // result = (TimeSpan) (item.TotalUsageTime + (
-                //     item.LastStartDate - dateNow));
+                timeSpanTemp = timeSpanTemp + ((TimeSpan) (dateNow - item.LastStartDate));
             }
-            else
-            {
-                // result = (TimeSpan) item.TotalUsageTime;
-            }
+
+            result.Seconds = timeSpanTemp.Seconds;
+            result.Minutes = timeSpanTemp.Minutes;
+            result.Hours = timeSpanTemp.Hours;
+            result.Days = timeSpanTemp.Days;
 
             return result;
         }

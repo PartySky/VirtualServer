@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace VirtualServer.Models
 {
@@ -6,7 +7,8 @@ namespace VirtualServer.Models
     {
         public int Id { get; set; }
         public DateTime CreateTime { get; set; }
-        public DateTime RemovedTime { get; set; }
-        public bool IsSelectedForRemove { get; set; }
+        public Nullable<DateTime> RemovedTime { get; set; }
+        [Column(TypeName = "TINYINT(4)")]
+        public bool IsRemoved { get; set; }
     }
 }

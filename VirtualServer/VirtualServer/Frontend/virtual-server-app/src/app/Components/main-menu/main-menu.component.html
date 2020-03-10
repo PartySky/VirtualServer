@@ -1,0 +1,64 @@
+<div>Main Menu</div>
+
+
+<div class="tab_header">
+  <div class="cell">
+    <div [innerText]="localization.CurrentTime"></div>
+  </div>
+  <div class="cell">
+    <div *ngIf="vmCurrentTime" [innerText]="vmCurrentTime"></div>
+  </div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+</div>
+
+<div class="tab_header">
+  <div class="cell">
+    <div [innerText]="localization.TotalUsageTime"></div>
+  </div>
+  <div class="cell">
+    <div *ngIf="totalUsageTime">
+      <span [innerText]="totalUsageTime.days"></span> days,
+      <span [innerText]="totalUsageTime.hours"></span>:
+      <span [innerText]="totalUsageTime.minutes"></span>:
+      <span [innerText]="totalUsageTime.seconds"></span>
+    </div>
+  </div>
+  <div class="cell"></div>
+  <div class="cell"></div>
+</div>
+
+<div class="tab_header">
+  <div class="cell">
+    <div [innerText]="localization.Id"
+         class="label"></div>
+  </div>
+  <div class="cell">
+    <div [innerText]="localization.CreateTime"
+         class="label"></div>
+  </div>
+  <div class="cell">
+    <div [innerText]="localization.RemovedTime"
+         class="label"></div>
+  </div>
+  <div class="cell">
+    <div [innerText]="localization.IsSelectedForRemove"
+         class="label"></div>
+  </div>
+</div>
+
+<server-item *ngFor="let item of serverList"
+             [server]="item"></server-item>
+
+<div class="button_wrapper">
+  <div (click)="addServer()"
+       [innerText]="localization.AddServer"
+        class="button button_add"></div>
+  <ng-container>
+    <div (click)="removeAll()"
+         [innerText]="localization.RemoveServer"
+         class="button button_remove_active"></div>
+    <div  *ngIf="false" [innerText]="localization.RemoveServer"
+         class="button button_remove_inactive"></div>
+  </ng-container>
+</div>
